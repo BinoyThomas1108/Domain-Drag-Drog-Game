@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Drag and Drop Domain Classification Game</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      overflow: hidden;
+      font-family: Arial, sans-serif;
+    }
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px;
+      box-sizing: border-box;
+    }
+    h2 {
+      margin: 10px 0;
+    }
+    #game {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      width: 100%;
+      flex-grow: 1;
+      overflow: auto;
+    }
+    .activity {
+      padding: 8px;
+      border: 2px dashed #ccc;
+      border-radius: 8px;
+      min-height: 50px;
+      background: #fff;
+    }
+    .domain {
+      display: inline-block;
+      padding: 6px 10px;
+      background-color: #d0e6ff;
+      margin: 4px;
+      border-radius: 10px;
+      cursor: move;
+      font-size: 14px;
+    }
+    .basket {
+      border: 2px solid #999;
+      border-radius: 12px;
+      padding: 8px;
+      background-color: #f9f9f9;
+      width: 100%;
+      text-align: center;
+      min-height: 60px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+    }
+    .dropzone {
+      min-height: 30px;
+      border: 1px dashed #aaa;
+      margin-top: 5px;
+      padding: 4px;
+      border-radius: 5px;
+      background-color: #f0f0f0;
+    }
+    button {
+      margin-top: 10px;
+      padding: 8px 16px;
+      font-size: 16px;
+    }
+    .score {
+      font-size: 16px;
+      font-weight: bold;
+      margin-top: 6px;
+    }
+  </style>
+</head>
+<body>
+<h2>Classify the Activities into Their Correct Domains</h2>
+<div id="game"></div>
+<div class="basket" id="basket" ondrop="dropToBasket(event)" ondragover="allowDrop(event)"><h3 style="width: 100%">Domains</h3></div>
+<div>
+  <button onclick="checkAnswers()">Submit</button>
+  <div id="score" class="score"></div>
+</div>
+
+<script>
+const activities = [
+  ["Gesture recognition", "Computer Vision"],
+  ["Chatbots", "NLP"],
+  ["Spam email detection", "NLP"],
+  ["Autonomous drones for surveillance", "Computer Vision"],
+  ["Google Translate", "NLP"],
+  ["Fraud detection in financial transactions", "Data Science"],
+  ["Augmented reality applications (Snapchat filters)", "Computer Vision"],
+  ["Sports analytics for performance optimization", "Data Science"],
+  ["Object detection in autonomous vehicles", "Computer Vision"],
+  ["Recommendation systems for e-commerce platforms", "Data Science"],
+  ["Customer segmentation for targeted marketing", "Data Science"],
+  ["Text summarization for news articles", "NLP"],
+  ["Automated subtitles for videos", "NLP"],
+  ["Medical image diagnosis", "Computer Vision"],
+  ["Stock prediction", "Data Science"]
+];
+
+const domains = [
+  "Computer Vision",
+  "NLP",
+  "Data Science",
+  "Computer Vision",
+  "NLP",
+  "Data Science",
+  "Computer Vision",
+  "NLP",
+  "Data Science",
+  "Computer Vision",
+  "NLP",
+  "Data Science",
+  "Computer Vision",
+  "NLP",
+  "Data Science"
+];
+
+function shuffle(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
+}
+
+function renderGame() {
+  const gameDiv = document.getElementById("game");
+  const basketDiv = document.getElementById("basket");
+  gameDiv.innerHTML = "";
+  // Do not clear basketDiv, just remove existing domain elements
+  Array.from(basketDiv.children).forEach(child => {
+    if (child.tagName !== "H3") basketDiv.removeChild(child);
+  });
+
+  shuffle(activities).forEach(([activity], idx) => {
+    const div = document.createElement("div");
+    div.className = "activity";
+    div.innerHTML = `<strong>${activity}</strong><div class="dropzone" ondrop="drop(event)" ondragover="allowDrop(event)" data-activity-index="${idx}"></div>`;
+    gameDiv.appendChild(div);
+  });
+
+  shuffle(domains).forEach((domain, i) => {
+    const span = document.createElement("span");
+    span.className = "domain";
+    span.innerText = domain;
+    span.draggable = true;
+    span.id = `domain-${i}`;
+    span.ondragstart = drag;
+    basketDiv.appendChild(span);
+  });
+}
+
+function allowDrop(ev) {
+  ev.preventDefault();
+}
+
+function drag(ev) {
+  ev.dataTransfer.setData("text", ev.target.id);
+}
+
+function drop(ev) {
+  ev.preventDefault();
+  const data = ev.dataTransfer.getData("text");
+  const droppedElem = document.getElementById(data);
+  if (droppedElem) {
+    ev.target.innerHTML = "";
+    ev.target.appendChild(droppedElem);
+  }
+}
+
+function dropToBasket(ev) {
+  ev.preventDefault();
+  const data = ev.dataTransfer.getData("text");
+  const droppedElem = document.getElementById(data);
+  const basket = document.getElementById("basket");
+  if (droppedElem && !basket.contains(droppedElem)) {
+    basket.appendChild(droppedElem);
+  }
+}
+
+function checkAnswers() {
+  let correct = 0;
+  const dropzones = document.querySelectorAll(".dropzone");
+  dropzones.forEach((zone, index) => {
+    const assigned = zone.textContent.trim();
+    if (assigned === activities[index][1]) {
+      correct++;
+    }
+  });
+  document.getElementById("score").innerText = `Your Score: ${correct} / ${activities.length}`;
+}
+
+renderGame();
+</script>
+</body>
+</html>
